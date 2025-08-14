@@ -8,6 +8,7 @@ datasource: PPMI_Curated_Data_Cut_Public_20241211.xlsx and Determination_of_Free
 ### Step 1: Load packages and data. 
 ```{r LoadPackages} 
 ###check that you have these packages
+
 # install.packages("dplyr")
 # install.packages("tidyr")
 # install.packages('ggplot2')
@@ -33,6 +34,7 @@ library(stringr)
 library(ggpubr)
 library(aod)
 library(gridExtra)
+options(warn = - 1)   
 ```
 ```{r LoadData}
 ### Before merging, must pre-process CSF_SAA CSV FILE: 
@@ -310,20 +312,6 @@ varlist <- c('covariates_categorical','covariates_continuous','falls_categorical
   'motor','cognitive','behavioral','sleep','sleep_categorical','autonomic','autonomic_categorical','injuries_categorical','hcuse_categorical')
 ```
 
-
-<!-- ```{r NotNeeded }
-# Biological variables - we won't use these in this paper because of lack of data
-biological_categorical <- c('APOE_e4', 'CSFSAA')
-biological_continuous <- c('abeta', 'tau', 'ptau', 'NFL_CSF', 'nfl_serum', 
-                           'Fmax_24h_mean', 'TTT_24h_mean', 'AUC_24h_mean', 
-                           'Fmax_150h_mean', 'TTT_150h_mean', 'AUC_150h_mean', 
-                           'T50_150h_mean', 'Fmax_24h_median', 'TTT_24h_median', 
-                           'AUC_24h_median', 'Fmax_150h_median', 'TTT_150h_median', 
-                           'AUC_150h_median', 'T50_150h_median')
-
-# Imaging variables- we won't use these in this paper because of lack of data
-imaging_continuous <- c('mean_striatum', 'mean_putamen', 'mean_caudate')
-``` -->
 
 ### Step 3: Clean Data 
 ```{r clearWS}
@@ -655,9 +643,9 @@ fall_all_freqs <- convert_to_numeric_except(fall_all_freqs)
 
 fall_freqs_plot=ggplot(data=fall_all_freqs[fall_all_freqs$fall_frequency!='none',], aes(x=years_since_diagnosis, group=fall_frequency,y=percentage,fill=fall_frequency))+
 geom_bar(stat='identity',position='stack')+
-xlab('Disease Duration (y)') +ylab('')+
+xlab('Years Since Diagnosis') +ylab('')+
 scale_x_continuous(limits=c(-1, 14.5))+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+scale_fill_grey(name = 'Fall Frequency',labels=c('Frequent Falls', 'Rare Falls'))+labs(title='Fall Frequency by Disease Duration',tag = 'A')+
+theme_bw()+scale_fill_grey(name = 'Fall Frequency',labels=c('Frequent Falls', 'Rare Falls'))+labs(title='Fall Frequency by Years Since Diagnosis',tag = 'A')+
 theme(legend.justification=c(0,1), legend.position=c(0.05,0.98),legend.box.background = element_rect(colour = "black"))
 
 
@@ -674,9 +662,9 @@ inj_all_freqs <- inj_all_freqs %>%
   mutate(percentage = (n / total_count) * 100)
 inj_freqs_plot=ggplot(data=inj_all_freqs[inj_all_freqs$anyinj==1,], aes(x=years_since_diagnosis,y=percentage))+
 geom_bar(stat='identity',position='stack')+
-xlab('Disease Duration (y)') + ylab('')+
+xlab('Years Since Diagnosis') + ylab('')+
 scale_x_continuous(limits=c(-1, 14.5))+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+labs(title='Injury Rate by Disease Duration', tag = 'B')
+theme_bw()+labs(title='Injury Rate by Years Since Diagnosis', tag = 'B')
 
 hosp_all_freqs <- data %>% 
   count(anyhc,years_since_diagnosis)
@@ -688,9 +676,9 @@ hosp_all_freqs <- hosp_all_freqs %>%
   mutate(percentage = (n / total_count) * 100)
 hosp_freqs_plot=ggplot(data=hosp_all_freqs[hosp_all_freqs$anyhc==1,], aes(x=years_since_diagnosis,y=percentage))+
 geom_bar(stat='identity',position='stack')+
-xlab('Disease Duration (y)')+ylab('')+
+xlab('Years Since Diagnosis')+ylab('')+
 scale_x_continuous(limits=c(-1, 14.5))+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+labs(title='Health Care Utilization by Disease Duration', tag = 'C')
+theme_bw()+labs(title='Health Care Utilization by Years Since Diagnosis', tag = 'C')
 
 
 
@@ -698,44 +686,9 @@ fall_freqs_plot
 inj_freqs_plot
 hosp_freqs_plot
 ```
-```{r injandhosp}
-
-fall_inj_freqs <- data[data$fall_occurrence=='yes',] %>% 
-  count(anyinj,years_since_diagnosis)
-fall_inj_freqs <- fall_inj_freqs %>%
-  group_by(years_since_diagnosis) %>%
-  mutate(total_count = sum(n)) %>%  # Calculate the total count for each group
-  ungroup()  # Ungroup after calculation
-fall_inj_freqs <- fall_inj_freqs %>%
-  mutate(percentage = (n / total_count) * 100)
-fall_inj_plot=ggplot(data=fall_inj_freqs[fall_inj_freqs$anyinj==1,], aes(x=years_since_diagnosis,y=percentage))+
-geom_bar(stat='identity',position='stack')+
-xlab('Disease Duration (y)') + ylab('')+
-scale_x_continuous(limits=c(-1, 14.5))+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+labs(title='Falls with Injury by Disease Duration', tag = 'D')
-
-data$injandhosp = data$anyinj&data$anyhc # both injury and hc use
-
-both_all_freqs <- data[data$anyinj==1,] %>% 
-  count(injandhosp,years_since_diagnosis)
-both_all_freqs <- both_all_freqs %>%
-  group_by(years_since_diagnosis) %>%
-  mutate(total_count = sum(n)) %>%  # Calculate the total count for each group
-  ungroup()  # Ungroup after calculation
-both_all_freqs <- both_all_freqs %>%
-  mutate(percentage = (n / total_count) * 100)
-both_plot=ggplot(data=both_all_freqs[both_all_freqs$injandhosp==1,], aes(x=years_since_diagnosis,y=percentage))+
-geom_bar(stat='identity',position='stack')+
-xlab('Disease Duration (y)') + ylab('')+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+labs(title='Injuries Receiving HC Use by Disease Duration', tag = 'E')
 
 
-grid.arrange(fall_freqs_plot, arrangeGrob(inj_freqs_plot, hosp_freqs_plot, ncol=2),arrangeGrob(fall_inj_plot, both_plot, ncol=2), nrow = 3)
-fall_freqs_plot / (inj_freqs_plot+hosp_freqs_plot)/(fall_inj_plot+both_plot)
-#both_freqs_plot=ggplot(data=both_all_freqs[_all_freqs$anyhc==1,], aes(x=years_since_diagnosis,y=percentage))+
-```
-
-```{r makeAnotherPlot}
+```{r CombinePlot}
   injandhosp = inj_all_freqs[inj_all_freqs$anyinj==1,2:5] # keep only injury measurement and remove column that says it is an injury
   injandhosp$outcome = 'Fall-Related Injury'
   tmp = hosp_all_freqs[hosp_all_freqs$anyhc==1,2:5]# same thing for hc
@@ -746,8 +699,8 @@ fall_freqs_plot / (inj_freqs_plot+hosp_freqs_plot)/(fall_inj_plot+both_plot)
 
 outcome_plot=ggplot(data=injandhosp, aes(x=years_since_diagnosis,y=percentage, group=outcome, fill=outcome))+
 geom_bar(stat='identity',position='dodge')+scale_x_continuous(limits=c(-1, 14.5))+
-xlab('Disease Duration (y)') + ylab('')+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
-theme_bw()+labs(title='Fall-Related Injury and Healthcare Utilization by Disease Duration', tag = 'B')+
+xlab('Years Since Diagnosis') + ylab('')+scale_y_continuous(labels = function(x) paste0(x, "%"), limits=c(0,100))+
+theme_bw()+labs(title='Fall-Related Injury and Healthcare Utilization by Years Since Diagnosis', tag = 'B')+
 scale_fill_grey(name = 'Outcome')+theme(legend.justification=c(0,1), legend.position=c(0.05,0.98),legend.box.background = element_rect(colour = "black"))
 outcome_plot
 fall_freqs_plot/outcome_plot
@@ -777,7 +730,7 @@ nsdcounts1+nsdcounts2
 nsdcounts1
 nsdcounts2
 ```
-```{r scaledBarNsd}
+```{r scaledBarNsdFall}
 fall_nsd <- data %>% 
   count(fall_frequency,NSD_STAGE)
 # note that there are no examples of falling in 2a (for rare and frequent) and 2b (frequent)
@@ -803,7 +756,7 @@ fall_nsd_plot
 
 
 ```
-```{r scaledBarNsd2}
+```{r scaledBarNsdInj}
 inj_nsd <- data %>% 
   count(anyinj,NSD_STAGE)
 # note that there are no examples of injury in 2a, add that in 
@@ -823,7 +776,7 @@ theme_bw()+theme(legend.position="none")+labs(title='Injury Across NSD-ISS Stage
 
 inj_nsd_plot
 ```
-```{r scaledBarNsd3}
+```{r scaledBarNsdHC}
 hc_nsd <- data %>% 
   count(anyhc,NSD_STAGE)
 # note that there are no examples of hc in 2a, add that in 
@@ -842,7 +795,6 @@ theme_bw()+theme(legend.position="none")+labs(title='Health Care Utilization Acr
 
 hc_nsd_plot
 
-fall_nsd_plot/inj_nsd_plot/hc_nsd_plot
 ```
 ```{r makecombograph}
 tmp1= inj_nsd[inj_nsd$anyinj==1,2:5] # keep only where there is injury
@@ -998,98 +950,7 @@ print('NSD Percentages Within Groups')
 print(prop.table(table(xSection$NSD_STAGE,xSection$ThreeGroups),margin=2))
 
 ```
-<!-- ```{r statsWrapperForGroups}
-get.stats.groups=function(df,varlist,varnames, catflag = 0){
-# Required: 
-# Dataframe (df) 
-# List of variables (varlist)
-# Names of variables (varnames)
-# categorical flag (catflag) (assume not)
-results <- data.frame(
-  Variable = character(),
-  Name = character(),
-  Group = character(),
-  Type = character(),
-  Mean = numeric(),
-  SD = numeric(),
-  Median = numeric(),
-  IQR = numeric(),
-  #Wilcoxon_P_value = numeric(),
-  # T_test_P_value = numeric(),
-  NRp = numeric(), # N to R p value
-  RFp = numeric(), # R to F p value 
-  stringsAsFactors = FALSE
-)
-if(missing(varnames)){varnames = varlist} 
-grouplist = levels(df[['ThreeGroups']])
 
-df[['ThreeGroups']]=relevel(df[['ThreeGroups']],'Rare' ) # make Rare be the first group
-
-# Get summary statistics and regressions 
-counter=1
-for(var in varlist){ # Go through each variable 
-  statRowTemp=NULL
-  for(group in grouplist){ # Go through each group
-  tempdat = df[df[,'ThreeGroups']==group,] # Get the rows that match 
-  temp2 = tempdat[[var]] # Get that data 
-  if(sum(is.na(temp2))/length(temp2)>0.5){
-      print(c('Warning: More than 50% of data is missing for group',group,'and variable',var))
-  }
-  statRowTemp = rbind(statRowTemp,data.frame(Variable = var, Name = varnames[counter], Group=group, 
-    Mean = mean(temp2, na.rm=TRUE), SD=sd(temp2, na.rm=TRUE),Median=median(temp2, na.rm=TRUE),
-    IQR=IQR(temp2, na.rm=TRUE)))
-  }
-  # Now, run a regression, then get the p values for the model
-    # Check for edge cases: covariates
-    if(var=='SEX'){ # Run without as a covariate
-      fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + years_since_diagnosis, data = df, family = binomial)
-    NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-    Type = 'Categorical'
-    }else if (var=='disease_duration') { # Run without as a covariate
-      fit = lm(eval(str2lang(var)) ~  ThreeGroups+age +SEX, data = df)
-    NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Type='Continuous'
-    }else if(var=='age'){# Run without as a covariate
-      fit = lm(eval(str2lang(var)) ~  ThreeGroups +SEX+years_since_diagnosis, data = df)
-     NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Type = 'Continuous'
-    }else if(catflag){ # Check for categoricals
-      fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + SEX+years_since_diagnosis, data = df, family = binomial)
-    NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-    Type = 'Categorical'
-    }else{
-      fit = lm(eval(str2lang(var)) ~ ThreeGroups+ age+years_since_diagnosis +SEX, data = df)
-    NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Type = 'Continuous'
-    }
-    print(var)
-    print(summary(fit))
-    statRowTemp$Type = Type
-    statRowTemp$NRp[statRowTemp$Group=='Never']=NRp
-    statRowTemp$RFp[statRowTemp$Group=='Frequent']=RFp
-    results = rbind(results, statRowTemp)
-    counter= counter+1 # increment names counter
-}
-# change the names 
-
-  results$Group=factor(results$Group,levels=c('Never'='Never','Rare'='Rare','Frequent'='Frequent'))
-
-# for(var in unique(results$Variable)){
-#   print(var)
-#   temps = results[results$Variable==var,]
-#   p= ggplot(temps, aes(x=Group, y=Mean))+geom_bar(stat='identity')+theme_bw()+ggtitle(var)+geom_errorbar( aes(x=Group, ymin=Mean-SD, ymax=Mean+SD), width=0.4, alpha=0.9, size=1.3)
-#   print(p)
-# }
-#print(results)
-return(results)
-}
-
-``` -->
 ```{r statsWrapperForGroups}
 get.stats.All=function(df,varlist,varnames, catflag = 0){
 # Required: 
@@ -1240,8 +1101,7 @@ for(var in varlist){ # Go through each variable
     statRowTemp$odds[statRowTemp$Group=='Frequent'] = ifelse('ThreeGroupsFrequent'%in%row.names(oddsdf),oddsdf['ThreeGroupsNever','OR'],NA)
     statRowTemp$odds[statRowTemp$Group==0]=ifelse('SEX'%in%row.names(oddsdf),1/oddsdf['SEX','OR'],NA)
     results = rbind(results, statRowTemp)
-    if(var%in%c('fell','frac','INJFRUE')){print(var)
-    print(oddsdf)}
+    
     counter= counter+1 # increment names counter
 }
 # change the names 
@@ -1259,8 +1119,6 @@ for(varSubset in varlist){
   varNames = paste0(varSubset,'_names')
   if(grepl('categorical',varSubset,fixed=TRUE)){catflag=1}
   else{catflag=0}
-  print(varSubset)
-  print(catflag)
   fullStats = rbind(fullStats,get.stats.All(xSection, eval(str2lang(varSubset)), eval(str2lang(varNames)),catflag=catflag))
 }
 #print(fullStats)
@@ -1509,189 +1367,22 @@ for(i in 1:length(namelist)){
 g.sex
 ```
 
-```{r statsWrapperForGroups2}
-get.stats.Combo=function(df,varlist,varnames, catflag = 0){
-# Required: 
-# Dataframe (df) 
-# List of variables (varlist)
-# Names of variables (varnames)
-# categorical flag (catflag) (assume not)
-results <- data.frame(
-  Variable = character(),
-  Name = character(),
-  Group = character(),
-  Type = character(),
-  Mean = numeric(),
-  SD = numeric(),
-  Median = numeric(),
-  IQR = numeric(),
-  Wald = numeric(),
-  chi2 = numeric(), # chi2 for wald test for cohort 
-  p = numeric(), # p value
-  odds = numeric(),# odds ratio 
-  stringsAsFactors = FALSE,
-  pagesex = numeric(),
-  pest = numeric()
-)
-if(missing(varnames)){varnames = varlist} 
-grouplist = levels(df[['ThreeGroups']])
-
-df[['ThreeGroups']]=relevel(df[['ThreeGroups']],'Rare' ) # make Rare be the first group
- 
-
-# Get summary statistics and regressions 
-counter=1
-for(var in varlist){ # Go through each variable 
-  statRowTemp=NULL
-
-  for(group in grouplist){ # Go through each fall frequency group 
-  tempdat = df[df[,'ThreeGroups']==group,] # Get the rows that match 
-  temp2 = tempdat[[var]] # Get that data 
-  if(sum(is.na(temp2))/length(temp2)>0.5){
-      print(c('Warning: More than 50% of data is missing for group',group,'and variable',var))
-  }
-  statRowTemp = rbind(statRowTemp,data.frame(Variable = var, Name = varnames[counter], Group=group, 
-    Mean = mean(temp2, na.rm=TRUE), SD=sd(temp2, na.rm=TRUE),Median=median(temp2, na.rm=TRUE),
-    IQR=IQR(temp2, na.rm=TRUE)))
-  }
-  # go through each sex group 
-  for(group in c(0,1)){ # Go through each group
-  tempdat = df[df[,'SEX']==group,] # Get the rows that match 
-  temp2 = tempdat[[var]] # Get that data 
-  if(sum(is.na(temp2))/length(temp2)>0.5){
-      print(c('Warning: More than 50% of data is missing for group',group,'and variable',var))
-  }
-  statRowTemp = rbind(statRowTemp,data.frame(Variable = var, Name = varnames[counter], Group=group, 
-    Mean = mean(temp2, na.rm=TRUE), SD=sd(temp2, na.rm=TRUE),Median=median(temp2, na.rm=TRUE),
-    IQR=IQR(temp2, na.rm=TRUE)))
-  }
-
-  # Now, run a regression, then get the p values for the model
-    # Check for edge cases: covariates
-    if(var=='SEX'){ # Run without as a covariate
-    fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + years_since_diagnosis, data = df, family = binomial)
-      w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      chi2=w$result$chi2[[1]]
-      Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-      RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-    Type = 'Categorical'
-    }else if(var=='fall_frequency_frequent'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX+age*SEX, data = df, family = binomial)
-     #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      #chi2=w$result$chi2[[1]]
-      #Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      #NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-      #RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-      Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
-    Type = 'Categorical'
-    }
-    else if(var=='fall_frequency_rare'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX+age*SEX, data = df, family = binomial)
-     #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      #chi2=w$result$chi2[[1]]
-      #Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      #NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-      #RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-      Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
-    Type = 'Categorical'
-    }else if(var=='fell'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX+age*SEX, data = df, family = binomial)
-     #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      #chi2=w$result$chi2[[1]]
-      #Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      #NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-      #RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-      Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
-    Type = 'Categorical'
-    }else if (var=='disease_duration') { # Run without as a covariate
-      fit = lm(eval(str2lang(var)) ~  ThreeGroups+age +SEX+age*SEX, data = df)
-      w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      chi2=w$result$chi2[[1]]
-      Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-    NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Sp = summary(fit)$coefficients['SEX','Pr(>|t|)']
-    Type='Continuous'
-    }else if(var=='age'){# Run without as a covariate
-      fit = lm(eval(str2lang(var)) ~  ThreeGroups +SEX+years_since_diagnosis, data = df)
-     w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      chi2=w$result$chi2[[1]]
-      Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Sp = summary(fit)$coefficients['SEX','Pr(>|t|)']
-    Type = 'Continuous'
-    }else if(catflag){ # Check for categoricals
-      fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + SEX+years_since_diagnosis+age*SEX, data = df, family = binomial)
-    w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      chi2=w$result$chi2[[1]]
-      Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|z|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
-    Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
-    Type = 'Categorical'
-    }else{
-      fit = lm(eval(str2lang(var)) ~ ThreeGroups+ age+years_since_diagnosis +SEX+age*SEX, data = df)
-    w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
-      chi2=w$result$chi2[[1]]
-      Wald = w$result$chi2[[3]]
-      oddsdf = exp(cbind(OR=coef(fit), confint(fit)))
-      NRp = summary(fit)$coefficients['ThreeGroupsNever','Pr(>|t|)']
-    RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
-    Sp = summary(fit)$coefficients['SEX','Pr(>|t|)']
-    Type = 'Continuous'
-    }
-    print(var)
-    print(summary(fit))
-
-    sumfit = summary(fit)$coefficients
-    statRowTemp$Type = Type
-    statRowTemp$p[statRowTemp$Group=='Never']=ifelse(exists('NRp'),NRp, NA)
-    statRowTemp$p[statRowTemp$Group=='Frequent']=ifelse(exists('RFp'),RFp, NA)
-    statRowTemp$p[statRowTemp$Group==0]=ifelse(exists('Sp'),Sp, NA)
-    statRowTemp$chi2=ifelse(exists('chi2'),chi2,NA)
-    statRowTemp$Wald=ifelse(exists('Wald'),Wald,NA)
- 
-    statRowTemp$pagesex = ifelse('age:SEX'%in%row.names(sumfit)&'Pr(>|z|)'%in%colnames(sumfit),sumfit['age:SEX','Pr(>|z|)'],NA)
-    if(sum(is.na(statRowTemp$pagesex))>0){
-      statRowTemp$pagesex = ifelse('age:SEX'%in%row.names(sumfit)&'Pr(>|t|)'%in%colnames(sumfit),sumfit['age:SEX','Pr(>|t|)'],NA)
-  
-    }
-    statRowTemp$pest = ifelse('age:SEX'%in%row.names(sumfit),sumfit['age:SEX','Pr(>|z|)'],NA)
-  
-    statRowTemp$odds[statRowTemp$Group=='Never'] = ifelse('ThreeGroupsNever'%in%row.names(oddsdf),1/oddsdf['ThreeGroupsNever','OR'],NA)
-    statRowTemp$odds[statRowTemp$Group=='Frequent'] = ifelse('ThreeGroupsFrequent'%in%row.names(oddsdf),oddsdf['ThreeGroupsNever','OR'],NA)
-    statRowTemp$odds[statRowTemp$Group==0]=ifelse('SEX'%in%row.names(oddsdf),1/oddsdf['SEX','OR'],NA)
-    results = rbind(results, statRowTemp)
-    counter= counter+1 # increment names counter
+```{r customPlots}
+g.custom = NULL
+namelist = c('LEDD') # ADD YOUR LIST OF VARIABLES HERE
+for(i in 1:length(namelist)){
+  # get values from the results dataframe
+  tempdat = fullStats[fullStats$Variable==namelist[i],]
+  yvar=tempdat[1,'Variable']
+  lab = tempdat[1,'Name']
+  nr = tempdat$Sig[tempdat$Group=='Never']
+  rf = tempdat$Sig[tempdat$Group=='Frequent']
+# use all values from the cross sectional dataframe 
+  if(is.null(g.custom)){
+    g.custom=create_chart(xSection,'ThreeGroups',yvar,lab, nr, rf)
+  }else{
+  g.custom=g.custom+create_chart(xSection,'ThreeGroups',yvar,lab, nr, rf)
 }
-# change the names 
-results$Group[results$Group==0]='Female'
-results$Group[results$Group==1]='Male'
-  results$Group=factor(results$Group,levels=c('Never'='Never','Rare'='Rare','Frequent'='Frequent','Female'='Female','Male'='Male'))
-
-return(results)
 }
-```
-
-```{r getAllStatsWithCombo}
-fullStatsCombo = NULL
-for(varSubset in varlist){
-  varNames = paste0(varSubset,'_names')
-  if(grepl('categorical',varSubset,fixed=TRUE)){catflag=1}
-  else{catflag=0}
-  print(varSubset)
-  print(catflag)
-  fullStatsCombo = rbind(fullStatsCombo,get.stats.Combo(xSection, eval(str2lang(varSubset)), eval(str2lang(varNames)),catflag=catflag))
-}
-#print(fullStats)
-
+g.custom
 ```
