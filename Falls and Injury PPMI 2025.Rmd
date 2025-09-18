@@ -42,7 +42,7 @@ options(warn = - 1)
 # 2. Rename clinical event to EVENT_ID
 
 # Read the Excel file
-path = "/Users/khefter/Library/CloudStorage/Box-Box/PPMI Falls/" # change to match your own location
+path <- "/Users/khefter/Library/CloudStorage/Box-Box/PPMI Falls/" # change to match your own location
 datacut <- read_xlsx("/Users/khefter/Library/CloudStorage/Box-Box/PPMI Falls/PPMI_Curated_Data_Cut_Public_20241211.xlsx")
 # This data has clinical data 
 
@@ -158,26 +158,26 @@ data$RaceIsWhite <- as.numeric(data$race==1) # dataset is overwhelmingly white
 
 # convert NSD stage to a number on a linear scale, for regression 
 data$NSD_stage_num <-NA
-data$NSD_stage_num[data$NSD_STAGE=='Not NSD']=NA
-data$NSD_stage_num[data$NSD_STAGE=='1a']=1
-data$NSD_stage_num[data$NSD_STAGE=='1b']=1.5
-data$NSD_stage_num[data$NSD_STAGE=='2a']=2
-data$NSD_stage_num[data$NSD_STAGE=='2b']=2.5
-data$NSD_stage_num[data$NSD_STAGE=='3']=3
-data$NSD_stage_num[data$NSD_STAGE=='4']=4
-data$NSD_stage_num[data$NSD_STAGE=='5']=5
-data$NSD_stage_num[data$NSD_STAGE=='6']=6
-data$NSD_stage_num = as.numeric(data$NSD_stage_num)
+data$NSD_stage_num[data$NSD_STAGE=='Not NSD']<-NA
+data$NSD_stage_num[data$NSD_STAGE=='1a']<-1
+data$NSD_stage_num[data$NSD_STAGE=='1b']<-1.5
+data$NSD_stage_num[data$NSD_STAGE=='2a']<-2
+data$NSD_stage_num[data$NSD_STAGE=='2b']<-2.5
+data$NSD_stage_num[data$NSD_STAGE=='3']<-3
+data$NSD_stage_num[data$NSD_STAGE=='4']<-4
+data$NSD_stage_num[data$NSD_STAGE=='5']<-5
+data$NSD_stage_num[data$NSD_STAGE=='6']<-6
+data$NSD_stage_num <- as.numeric(data$NSD_stage_num)
 
 # get a binarized NSD stage: stage 3 or lower (1, 2a, 2b, 3) or 4 or higher (4, 5, 6)
 data$NSD_dichot <- NA
-data$NSD_dichot[data$NSD_stage_num<=3]=1 
-data$NSD_dichot[data$NSD_STAGE%in%c('4','5','6')]=0
+data$NSD_dichot[data$NSD_stage_num<=3]<-1 
+data$NSD_dichot[data$NSD_STAGE%in%c('4','5','6')]<-0
 
 # get a binarized RBDSQ score (>=5 )
 data$RBDSQ <- NA
-data$RBDSQ[data$rem>=5]=1
-data$RBDSQ[data$rem<5]=0
+data$RBDSQ[data$rem>=5]<-1
+data$RBDSQ[data$rem<5]<-0
 ```
 ```{r getFallsFreqs}
 # Create the new 'fall_frequency' column based on the given conditions
@@ -216,35 +216,35 @@ data %>%
 
 #make a binarized version of this 
 data$fell <-NA
-data$fell[data$fall_occurrence=='no']=0
-data$fell[data$fall_occurrence=='yes']=1
+data$fell[data$fall_occurrence=='no']<-0
+data$fell[data$fall_occurrence=='yes']<-1
 
 ```
 ```{r getInjuryVars}
 
 # derive additional injury and hospitalization variables 
-injuries = c('INJFRHIP','INJFRUE','INJFRSKL','INJFROTH','HINJNOLC','HINJLOC2','INJSTCH','INJOTH')
-hcuse = c('FLLDRVIS','FLLERVIS','FLLHOSP','FLLSURG','FLLINST')
+injuries <- c('INJFRHIP','INJFRUE','INJFRSKL','INJFROTH','HINJNOLC','HINJLOC2','INJSTCH','INJOTH')
+hcuse <- c('FLLDRVIS','FLLERVIS','FLLHOSP','FLLSURG','FLLINST')
 
 # NOTE: Assume that any data that does not have injury or hospitalization data, did not have an injury or hospitalization
 # This is a reasonable assumption: 99.9% of the samples without injury or hospitalization noted that they did not fall 
 
-vars = c(injuries,hcuse)
+vars <- c(injuries,hcuse)
 for(var in vars){
- data[[var]][is.na(data[[var]])]=0
+ data[[var]][is.na(data[[var]])]<-0
 }
 
 # derive additional variables 
 # any injury 
-data$anyinj = (data$INJFRHIP|data$INJFRUE|data$INJFRSKL|data$INJFROTH|data$HINJNOLC|data$HINJLOC2|data$INJSTCH|data$INJOTH)*1
+data$anyinj <- (data$INJFRHIP|data$INJFRUE|data$INJFRSKL|data$INJFROTH|data$HINJNOLC|data$HINJLOC2|data$INJSTCH|data$INJOTH)*1
 # any healthcare use 
-data$anyhc = (data$FLLDRVIS|data$FLLERVIS|data$FLLHOSP|data$FLLSURG|data$FLLINST)*1
+data$anyhc <- (data$FLLDRVIS|data$FLLERVIS|data$FLLHOSP|data$FLLSURG|data$FLLINST)*1
 # any fracture 
-data$frac = (data$INJFRHIP|data$INJFRUE|data$INJFRSKL|data$INJFROTH)*1
+data$frac <- (data$INJFRHIP|data$INJFRUE|data$INJFRSKL|data$INJFROTH)*1
 # more than one injury 
-data$mult = ((data$INJFRHIP+data$INJFRUE+data$INJFRSKL+data$INJFROTH+data$HINJNOLC+data$HINJLOC2+data$INJSTCH+data$INJOTH)>1)*1
+data$mult <- ((data$INJFRHIP+data$INJFRUE+data$INJFRSKL+data$INJFROTH+data$HINJNOLC+data$HINJLOC2+data$INJSTCH+data$INJOTH)>1)*1
 # head injury 
-data$head = (data$HINJNOLC|data$HINJLOC2)*1
+data$head <- (data$HINJNOLC|data$HINJLOC2)*1
 
 ```
 
@@ -253,7 +253,7 @@ data$head = (data$HINJNOLC|data$HINJLOC2)*1
 
 # Covariate variables
 covariates_categorical <- c('SEX')
-covariates_continuous <- c('age','disease_duration') 
+covariates_continuous <- c('age_at_visit','disease_duration') 
 covariates_categorical_names <- c('Sex')
 covariates_continuous_names <- c('Age','Disease Duration')
 # technically, we use 'years_since_diagnosis' as the covariate, but they're quite similar
@@ -388,12 +388,12 @@ aggregate(PATNO ~ COHORT, data = data, FUN = function(x) length(unique(x)))
 # 3. Subjects have a record ID, which implies that falling data likely exists. 
 
 dataAll<- data # keep this in case I need it later 
-data = data[!is.na(data$COHORT)&data$COHORT!=3&!is.na(data$REC_ID),] # get all cohorts besides 3, and where record exists
-data=data[!(data$COHORT==1& data$subgroup!='Sporadic PD'),] # drop where data is cohort 1 but not sporadic pd 
+data <- data[!is.na(data$COHORT)&data$COHORT!=3&!is.na(data$REC_ID),] # get all cohorts besides 3, and where record exists
+data<-data[!(data$COHORT==1& data$subgroup!='Sporadic PD'),] # drop where data is cohort 1 but not sporadic pd 
 
 # Make cohort a factor
-data$COHORT = factor(data$COHORT)
-data = droplevels(data)# this will make your life easier later
+data$COHORT <- factor(data$COHORT)
+data <- droplevels(data)# this will make your life easier later
 ```
 
 ### Step 5: Analyze rates of falling, injury, and hospitalization across cohorts
@@ -414,12 +414,12 @@ BH <- function(p, alpha = 0.05){
 
 #### Part 1: How do rates of falling, injury, and hospitalization differ across people with sporadic PD, and healthy and prodromal controls?
 ```{r Question1}
-df1 = data # set this dataset aside 
+df1 <- data # set this dataset aside 
 
 # collect variables of interest, skipping 'fell' because they all fell
-vars = c(falls_categorical,injuries_categorical,hcuse_categorical)# collect variables of interest 
+vars <- c(falls_categorical,injuries_categorical,hcuse_categorical)# collect variables of interest 
 
-res = table(df1$COHORT) # get tally to use for denominator 
+res <- table(df1$COHORT) # get tally to use for denominator 
 
 # Initialize results table 
 results1 <- data.frame(
@@ -450,20 +450,20 @@ results1 <- data.frame(
 )
 
 for(var in vars){
-  counts = table(df1[[var]],df1$COHORT)[2,] # get counts per group
-  pers = counts/res*100 # get percents per group 
+  counts <- table(df1[[var]],df1$COHORT)[2,] # get counts per group
+  pers <- counts/res*100 # get percents per group 
 
   # make a model 
-  model = glm(eval(str2lang(var)) ~ age + SEX+COHORT, data = df1, family = binomial) # 
+  model <- glm(eval(str2lang(var)) ~ age_at_visit + SEX+COHORT, data = df1, family = binomial) # 
   # test to see if cohort is statistically significant given everything else 
-  w = wald.test(b=coef(model), Sigma= vcov(model), Terms=4:5) # result = chi2, df, p value 
+  w <- wald.test(b=coef(model), Sigma= vcov(model), Terms=4:5) # result = chi2, df, p value 
   
   # get odds ratios - note we need to invert all of these for cohort and sex, 
   # and that lower/upper bounds will be switched 
-  oddsdf = exp(cbind(OR=coef(model), confint(model)))
+  oddsdf <- exp(cbind(OR=coef(model), confint(model)))
 
   # add everything to the dataframe 
-  statRowTemp = data.frame(Variable = var,SP = counts[[1]], SPper = pers[[1]], 
+  statRowTemp <- data.frame(Variable = var,SP = counts[[1]], SPper = pers[[1]], 
   Healthy=counts[[2]],Healthyper= pers[[2]],
   Pro=counts[[3]],Proper = pers[[3]],
   Tot = sum(df1[[var]], na.rm=TRUE), Totper = sum(df1[[var]],na.rm=TRUE)/sum(res)*100,
@@ -472,12 +472,12 @@ for(var in vars){
   HealthConfHigh=1/oddsdf['COHORT2','2.5 %'],HealthP = summary(model)$coefficients['COHORT2','Pr(>|z|)'],
   ProOdds = 1/oddsdf['COHORT4','OR'],ProConfLow=1/oddsdf['COHORT4','97.5 %'],
   ProConfHigh=1/oddsdf['COHORT4','2.5 %'],ProP = summary(model)$coefficients['COHORT4','Pr(>|z|)'],
-  AgeP = summary(model)$coefficients['age','Pr(>|z|)'],
+  AgeP = summary(model)$coefficients['age_at_visit','Pr(>|z|)'],
   SexOdds = 1/oddsdf['SEX','OR'],SexConfLow=1/oddsdf['SEX','97.5 %'],
   SexConfHigh=1/oddsdf['SEX','2.5 %'],SexP = summary(model)$coefficients['SEX','Pr(>|z|)']
   )
 
-results1 = rbind(results1, statRowTemp)
+results1 <- rbind(results1, statRowTemp)
    
 }
 
@@ -489,14 +489,14 @@ results1 = rbind(results1, statRowTemp)
 ```{r BHCorrectionsPart1}
 # run corrections on this
 
-pvals = c(results1$HealthP, results1$ProP,results1$AgeP,results1$SexP)
-bhs = BH(pvals)
+pvals <- c(results1$HealthP, results1$ProP,results1$AgeP,results1$SexP)
+bhs <- BH(pvals)
 # put the values back
-n = nrow(results1)
-results1$HealthPSig = bhs$BHSig[1:n]
-results1$ProPSig=bhs$BHSig[(n+1):(2*n)]
-results1$AgePSig = bhs$BHSig[(2*n+1):(3*n)]
-results1$SexPSig = bhs$BHSig[(3*n+1):(4*n)]
+n <- nrow(results1)
+results1$HealthPSig <- bhs$BHSig[1:n]
+results1$ProPSig <- bhs$BHSig[(n+1):(2*n)]
+results1$AgePSig <- bhs$BHSig[(2*n+1):(3*n)]
+results1$SexPSig <- bhs$BHSig[(3*n+1):(4*n)]
 # get significant results
 print(results1[results1$HealthPSig,c('Variable','HealthOdds','HealthConfLow','HealthConfHigh')])
 print(results1[results1$ProPSig,c('Variable','ProOdds','ProConfLow','ProConfHigh')])
@@ -508,17 +508,17 @@ Note - there simply weren't enough samples of healthy controls who fell to inclu
 # Select data. Criteria:
 # 1. In cohorts 1 or 4 (PD or prodromal)
 # 2. Fell 
-df2 = data[data$fall_occurrence=='yes'&!is.na(data$fall_occurrence)&data$COHORT%in%c(1,4),]# you have to have fallen
+df2 <- data[data$fall_occurrence=='yes'&!is.na(data$fall_occurrence)&data$COHORT%in%c(1,4),]# you have to have fallen
 
 ####TEST FOR KAT: MAKE SURE THEY"RE ALL SPORADIC PD 
 
-df2$COHORT=droplevels(df2$COHORT)
-df2$fall_frequency=droplevels(df2$fall_frequency)
-vars = c(injuries_categorical,hcuse_categorical)# collect variables of interest 
+df2$COHORT<-droplevels(df2$COHORT)
+df2$fall_frequency<-droplevels(df2$fall_frequency)
+vars <- c(injuries_categorical,hcuse_categorical)# collect variables of interest 
 
-res = table(df2$COHORT) # get tally to use for denominator 
-fallres = table(df2$fall_frequency)
-sexres = table(df2$SEX)
+res <- table(df2$COHORT) # get tally to use for denominator 
+fallres <- table(df2$fall_frequency)
+sexres <- table(df2$SEX)
 # Initialize results table 
 results2 <- data.frame(
   Variable = character(),
@@ -564,7 +564,7 @@ for(var in vars){
 
   # make a model 
   # Control for age, sex, and fall_frequency
-  model = glm(eval(str2lang(var)) ~ fall_frequency+age + SEX+COHORT, data = df2, family = binomial) 
+  model = glm(eval(str2lang(var)) ~ fall_frequency+age_at_visit + SEX+COHORT, data = df2, family = binomial) 
   # given that there are only 2 groups, we don't need a wald test 
 
   # get odds ratios - note we need to invert all of these for cohort and sex, 
@@ -583,7 +583,7 @@ for(var in vars){
   FallConfHigh=oddsdf['fall_frequencyfrequent','97.5 %'],FallP = summary(model)$coefficients['fall_frequencyfrequent','Pr(>|z|)'],
   ProOdds = 1/oddsdf['COHORT4','OR'],ProConfLow=1/oddsdf['COHORT4','97.5 %'],
   ProConfHigh=1/oddsdf['COHORT4','2.5 %'],ProP = summary(model)$coefficients['COHORT4','Pr(>|z|)'],
-  AgeP = summary(model)$coefficients['age','Pr(>|z|)'],
+  AgeP = summary(model)$coefficients['age_at_visit','Pr(>|z|)'],
   SexOdds = 1/oddsdf['SEX','OR'],SexConfLow=1/oddsdf['SEX','97.5 %'],
   SexConfHigh=1/oddsdf['SEX','2.5 %'],SexP = summary(model)$coefficients['SEX','Pr(>|z|)']
   )
@@ -599,10 +599,10 @@ results2
 ```{r BHCorrectionsPart2}
 # run corrections on this
 
-pvals = c(results2$FallP, results2$ProP,results2$AgeP,results2$SexP)
-bhs = BH(pvals)
+pvals <- c(results2$FallP, results2$ProP,results2$AgeP,results2$SexP)
+bhs <- BH(pvals)
 # put the values back
-n = nrow(results2)
+n <- nrow(results2)
 results2$FallPSig = bhs$BHSig[1:n]
 results2$ProPSig=bhs$BHSig[(n+1):(2*n)]
 results2$AgePSig = bhs$BHSig[(2*n+1):(3*n)]
@@ -1009,7 +1009,7 @@ for(var in varlist){ # Go through each variable
   # Now, run a regression, then get the p values for the model
     # Check for edge cases: covariates
     if(var=='SEX'){ # Run without as a covariate
-    fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + years_since_diagnosis, data = df, family = binomial)
+    fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age_at_visit + years_since_diagnosis, data = df, family = binomial)
       w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       chi2=w$result$chi2[[1]]
       Wald = w$result$chi2[[3]]
@@ -1018,7 +1018,7 @@ for(var in varlist){ # Go through each variable
       RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|z|)']
     Type = 'Categorical'
     }else if(var=='fall_frequency_frequent'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX, data = df, family = binomial)
+    fit <- glm(eval(str2lang(var)) ~ age_at_visit + years_since_diagnosis+SEX, data = df, family = binomial)
      #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       #chi2=w$result$chi2[[1]]
       #Wald = w$result$chi2[[3]]
@@ -1029,7 +1029,7 @@ for(var in varlist){ # Go through each variable
     Type = 'Categorical'
     }
     else if(var=='fall_frequency_rare'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX, data = df, family = binomial)
+    fit <- glm(eval(str2lang(var)) ~ age_at_visit + years_since_diagnosis+SEX, data = df, family = binomial)
      #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       #chi2=w$result$chi2[[1]]
       #Wald = w$result$chi2[[3]]
@@ -1039,7 +1039,7 @@ for(var in varlist){ # Go through each variable
       Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
     Type = 'Categorical'
     }else if(var=='fell'){ # Run without freq as a covariate
-    fit <- glm(eval(str2lang(var)) ~ age + years_since_diagnosis+SEX, data = df, family = binomial)
+    fit <- glm(eval(str2lang(var)) ~ age_at_visit + years_since_diagnosis+SEX, data = df, family = binomial)
      #w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       #chi2=w$result$chi2[[1]]
       #Wald = w$result$chi2[[3]]
@@ -1049,7 +1049,7 @@ for(var in varlist){ # Go through each variable
       Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
     Type = 'Categorical'
     }else if (var=='disease_duration') { # Run without as a covariate
-      fit = lm(eval(str2lang(var)) ~  ThreeGroups+age +SEX, data = df)
+      fit = lm(eval(str2lang(var)) ~  ThreeGroups+age_at_visit +SEX, data = df)
       w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       chi2=w$result$chi2[[1]]
       Wald = w$result$chi2[[3]]
@@ -1058,7 +1058,7 @@ for(var in varlist){ # Go through each variable
     RFp = summary(fit)$coefficients['ThreeGroupsFrequent','Pr(>|t|)']
     Sp = summary(fit)$coefficients['SEX','Pr(>|t|)']
     Type='Continuous'
-    }else if(var=='age'){# Run without as a covariate
+    }else if(var=='age_at_visit'){# Run without as a covariate
       fit = lm(eval(str2lang(var)) ~  ThreeGroups +SEX+years_since_diagnosis, data = df)
      w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       chi2=w$result$chi2[[1]]
@@ -1069,7 +1069,7 @@ for(var in varlist){ # Go through each variable
     Sp = summary(fit)$coefficients['SEX','Pr(>|t|)']
     Type = 'Continuous'
     }else if(catflag){ # Check for categoricals
-      fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age + SEX+years_since_diagnosis, data = df, family = binomial)
+      fit <- glm(eval(str2lang(var)) ~ ThreeGroups+ age_at_visit + SEX+years_since_diagnosis, data = df, family = binomial)
     w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       chi2=w$result$chi2[[1]]
       Wald = w$result$chi2[[3]]
@@ -1079,7 +1079,7 @@ for(var in varlist){ # Go through each variable
     Sp = summary(fit)$coefficients['SEX','Pr(>|z|)']
     Type = 'Categorical'
     }else{
-      fit = lm(eval(str2lang(var)) ~ ThreeGroups+ age+years_since_diagnosis +SEX, data = df)
+      fit = lm(eval(str2lang(var)) ~ ThreeGroups+ age_at_visit+years_since_diagnosis +SEX, data = df)
     w = wald.test(b=coef(fit), Sigma= vcov(fit), Terms=2:3) # result = chi2, df, p value 
       chi2=w$result$chi2[[1]]
       Wald = w$result$chi2[[3]]
@@ -1114,6 +1114,9 @@ return(results)
 
 ```
 ```{r getAllStats}
+varlist <- c('covariates_categorical','covariates_continuous','falls_categorical','demographic_categorical','demographic_continuous',
+  'motor','cognitive','behavioral','sleep','sleep_categorical','autonomic','autonomic_categorical','injuries_categorical','hcuse_categorical')
+
 fullStats = NULL
 for(varSubset in varlist){
   varNames = paste0(varSubset,'_names')
